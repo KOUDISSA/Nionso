@@ -34,7 +34,7 @@ class Order(models.Model):
     total = models.DecimalField(max_digits=6, decimal_places=2)
     date = models.DateField(db_index=True)
     
-class OrderItem(models.MOdel):
+class OrderItem(models.Model):
     """Class for creating instances of order items of users"""
     order = models.ForeignKey(User, on_delete=models.CASCADE)
     menuitem = models.ForeignKey(MenuItem, on_delete=models.CASCADE)
