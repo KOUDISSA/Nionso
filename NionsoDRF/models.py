@@ -12,7 +12,7 @@ class MenuItem(models.Model):
     title = models.CharField(max_length=255, db_index=True)
     price = models.DecimalField(max_digits=6, decimal_places=2, db_index=True)
     featured = models.BooleanField(db_index=True)
-    category = models.ForeignKey(User, on_delete=models.PROTECT)
+    category = models.ForeignKey(Category, on_delete=models.PROTECT)
     
 class Cart(models.Model):
     """Class for creating cart instances for users"""

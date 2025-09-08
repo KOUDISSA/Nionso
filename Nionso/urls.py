@@ -22,4 +22,5 @@ urlpatterns = [
     path('__debug__/', include('debug_toolbar.urls')),
     path('api/', include('djoser.urls')),
     path('api/', include('djoser.urls.authtoken')),
+    path('api/', include('NionsoDRF.urls'))
 ]
