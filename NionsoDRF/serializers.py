@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import *
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
+from django.contrib.auth.models import User
 
 class CategorySerializer(serializers.ModelSerializer):
     """class for converting category data"""
@@ -31,3 +32,9 @@ class MenuItemSerializer(serializers.ModelSerializer):
             'price': {'min_value': 1, 'max_value': 100},
             'inventory' : {'min_value': 0, 'max_value': 150},
         }
+        
+#user serializer
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email']
