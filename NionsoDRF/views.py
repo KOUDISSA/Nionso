@@ -118,3 +118,13 @@ def single_delivery_crew(request, id):
     user_delivery_crew = get_object_or_404(user, pk=id)
     serialized_data = UserSerializer(user_delivery_crew)
     return Response(serialized_data.data, status.HTTP_200_OK)
+
+#cart views class
+class CartView(generics.ListCreateAPIView):
+    queryset = Cart.objects.all()
+    serializer_class =  CartSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """retrieve menu items of the user's cart"""
+        return Cart.objects.all().filter(user=self.request.user)
