@@ -79,5 +79,31 @@ class CartSerializer(serializers.ModelSerializer):
         """method to calculate the total price"""
         return product.menuitem.price * product.quantity
     
-    # def retrieve_title(self, product: Cart):
-    #     return product.menuitem.title
+#order items serializer
+class OrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'order', 'menuitem', 'quantity', 'unit_price', 'price']
+        
+        validators = [UniqueTogetherValidator(
+            queryset=OrderItem.objects.all(),
+            fields = ['order', 'menuitem']
+        )]
+        
+#order serializer
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(read_only=True, many=True, source='orderitem_set')
+    class Meta:
+        model = Order
+        fields = ['id', 'user', 'delivery_crew', 'status', 'date', 'items']
+        read_only_fields = ['user']
+        
+class OrderManagerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['delivery_crew', 'status']
+        
+class OrderDeliverySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['status']
