@@ -128,3 +128,94 @@ class CartView(generics.ListCreateAPIView):
     def get_queryset(self):
         """retrieve menu items of the user's cart"""
         return Cart.objects.all().filter(user=self.request.user)
+    
+#order views class
+class OrderView(generics.ListCreateAPIView):
+    """class for creating order instances of users"""
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        """retrieve only order of user who is connected"""
+        user = self.request.user
+        #check if user is a manager
+        if user and user.groups.filter(name='Manager').exists():
+            return Order.objects.all()
+        #check if user is a delivery crew
+        elif user and user.groups.filter(name='Delivery crew').exists():
+            return Order.objects.all().filter(delivery_crew__isnull=False)
+        
+        return Order.objects.all().filter(user=user) #client
+    
+    def post(self, request, *args, **kwargs):
+        #check firstly if cart items exist  before creating order instance
+        cart_items = Cart.objects.all().filter(user=request.user)
+        if cart_items:
+            # creating order element
+            serialized_order = OrderSerializer(data=request.data)
+            serialized_order.is_valid(raise_exception=True)
+            #complete order element fields
+            total = sum(item.menuitem.price * item.quantity for item in cart_items)
+            order = Order.objects.create(
+                user = request.user,
+                delivery_crew = serialized_order.validated_data.get('delivery_crew'),
+                status = serialized_order.validated_data.get('status', False),
+                total = total,
+                date = serialized_order.validated_data.get('date')
+            )
+            #adding cart items in order items
+            for item in cart_items:
+                item = OrderItem.objects.create(
+                    order = order,
+                    menuitem = item.menuitem,
+                    quantity = item.quantity,
+                    unit_price = item.menuitem.price,
+                    price = item.menuitem.price * item.quantity
+                )
+            #delete cart items
+            cart_items.delete()
+            
+            return Response(OrderSerializer(order).data, status.HTTP_201_CREATED)
+        
+        return Response({'message': 'The cart is empty !'})
+    
+#order items views
+class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
+    """class for creating order items instances of connected user"""
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    
+    def get(self, request, pk, *args, **kwargs):
+        """retrieve only order of user who is connected"""
+        order = get_object_or_404(Order, pk=pk)
+        if order.user == request.user or order.user.groups.filter(name='Manager').exists():
+            items = OrderItem.objects.all().filter(order=order)
+            serialized_items = OrderItemSerializer(items, many=True)
+            return Response(serialized_items.data)
+        return Response({"message": "This order doesn't belong to you"}, status.HTTP_403_FORBIDDEN) 
+    # def get_queryset(self):                                #Variante pour récupérer le pk
+    #     order_id = self.kwargs.get("pk") 
+    #     return OrderItem.objects.all().filter(order_id=order_id)  
+    
+    def get_serializer_class(self):
+        """method to change serializers classes in cases"""
+        if self.request.user.groups.filter(name='Manager').exists(): # condition for manangers
+            if self.request.method == 'PUT' or self.request.method == 'PATCH':
+                return OrderManagerSerializer
+        elif self.request.user.groups.filter(name='Delivery crew').exists(): #for on deliveries
+            if self.request.method == 'PATCH':
+                return OrderDeliverySerializer
+        else:
+            return OrderSerializer
+        
+    def get_permissions(self):
+        """method for perfomed permissions"""
+        if self.request.method == 'DELETE':
+            return [IsManager()]
+        else:
+            return [IsAuthenticated()]
+        
+            
+            
+        
