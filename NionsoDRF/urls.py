@@ -15,5 +15,7 @@ urlpatterns = [
     path('cart/menu-items', views.CartView.as_view()),
     #order endpoints
     path('orders', views.OrderView.as_view()),
-    path('orders/<int:pk>', views.SingleOrderView.as_view()),  
+    path('orders/<int:pk>', views.SingleOrderView.as_view()),
+    #templates endpoints
+    path('index/', views.index)
 ]
