@@ -216,6 +216,12 @@ class SingleOrderView(generics.RetrieveUpdateDestroyAPIView):
         else:
             return [IsAuthenticated()]
         
+        
+#templates
+def index(request):
+    context = {'menuitem': MenuItem.objects.filter(featured=True)}
+    return render(request, 'index.html', context)
+        
             
             
         
