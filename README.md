@@ -29,7 +29,7 @@ etc. Available in the
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ```bash
 git clone https://github.com/[username]/[repo]
